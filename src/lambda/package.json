@@ -1,0 +1,11 @@
+{
+  "name": "upload-processor-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function for processing S3 uploads and generating album art",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.490.0",
+    "music-metadata": "^7.14.0",
+    "openai": "^4.24.1"
+  }
+}

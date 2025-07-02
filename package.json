@@ -7,6 +7,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
+    "test-setup": "npx ts-node scripts/test-setup.ts",
     "cdk": "cdk",
     "deploy": "npm run build && cdk deploy",
     "destroy": "cdk destroy",
@@ -26,11 +27,10 @@
   },
   "dependencies": {
     "aws-cdk-lib": "^2.117.0",
-    "aws-lambda": "^1.0.7",
-    "aws-sdk": "^2.1523.0",
     "constructs": "^10.3.0",
+    "@aws-sdk/client-s3": "^3.490.0",
     "openai": "^4.24.1",
     "music-metadata": "^7.14.0",
-    "sharp": "^0.33.1"
+    "source-map-support": "^0.5.21"
   }
 }
