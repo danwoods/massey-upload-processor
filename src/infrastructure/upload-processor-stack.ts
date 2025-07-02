@@ -23,7 +23,6 @@ export class UploadProcessorStack extends cdk.Stack {
       environment: {
         BUCKET_NAME: bucket.bucketName,
         OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
-        AWS_REGION: this.region,
       },
     });
 
