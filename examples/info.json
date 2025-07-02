@@ -1,0 +1,14 @@
+{
+  "id": "track-001",
+  "title": "Midnight Reflections",
+  "dateCreated": "2024-01-15",
+  "bpm": 120,
+  "key": "Am",
+  "chordProgression": "Am - F - C - G",
+  "description": "A contemplative piece exploring themes of solitude and introspection",
+  "tags": ["ambient", "electronic", "chill"],
+  "notes": "Recorded late at night with analog synths",
+  "isFeatured": false,
+  "isHidden": false,
+  "duration": 245
+}
