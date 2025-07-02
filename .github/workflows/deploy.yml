@@ -38,11 +38,41 @@ jobs:
     - name: Install AWS CDK
       run: npm install -g aws-cdk
 
+    - name: Check CDK Bootstrap Status
+      run: |
+        echo "Checking if CDK is already bootstrapped..."
+        if aws cloudformation describe-stacks --stack-name CDKToolkit --region ${{ env.AWS_REGION }} 2>/dev/null; then
+          echo "CDK is already bootstrapped"
+          echo "BOOTSTRAPPED=true" >> $GITHUB_ENV
+        else
+          echo "CDK is not bootstrapped"
+          echo "BOOTSTRAPPED=false" >> $GITHUB_ENV
+        fi
+
     - name: CDK Bootstrap (if needed)
-      run: cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/${{ env.AWS_REGION }}
+      if: env.BOOTSTRAPPED == 'false'
+      run: |
+        echo "Bootstrapping CDK environment..."
+        cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/${{ env.AWS_REGION }} || {
+          echo "Bootstrap failed. This might be due to insufficient permissions."
+          echo "Please ensure your AWS credentials have the following permissions:"
+          echo "- CloudFormation: CreateStack, DeleteStack, DescribeStacks"
+          echo "- IAM: CreateRole, DeleteRole, AttachRolePolicy, DetachRolePolicy"
+          echo "- S3: CreateBucket, DeleteBucket, PutObject, GetObject"
+          echo "- SSM: PutParameter, GetParameter, DeleteParameter"
+          echo "- ECR: CreateRepository, DeleteRepository"
+          echo "Continuing with deployment..."
+        }
 
     - name: Deploy with CDK
-      run: npm run deploy -- --require-approval never
+      run: |
+        echo "Deploying CDK stack..."
+        npm run deploy -- --require-approval never || {
+          echo "Deployment failed. This might be because CDK is not bootstrapped."
+          echo "If this is the first deployment, you may need to bootstrap manually:"
+          echo "aws cloudformation create-stack --stack-name CDKToolkit --template-url https://s3.amazonaws.com/cloudformation-templates-us-east-1/CDKToolkit.template"
+          exit 1
+        }
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
