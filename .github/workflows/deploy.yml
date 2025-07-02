@@ -61,17 +61,28 @@ jobs:
           echo "- S3: CreateBucket, DeleteBucket, PutObject, GetObject"
           echo "- SSM: PutParameter, GetParameter, DeleteParameter"
           echo "- ECR: CreateRepository, DeleteRepository"
-          echo "Continuing with deployment..."
+          echo "Bootstrap is required for deployment. Exiting..."
+          exit 1
         }
 
     - name: Deploy with CDK
       run: |
         echo "Deploying CDK stack..."
         npm run deploy -- --require-approval never || {
-          echo "Deployment failed. This might be because CDK is not bootstrapped."
-          echo "If this is the first deployment, you may need to bootstrap manually:"
-          echo "aws cloudformation create-stack --stack-name CDKToolkit --template-url https://s3.amazonaws.com/cloudformation-templates-us-east-1/CDKToolkit.template"
-          exit 1
+          echo "Deployment failed. Checking if bootstrap is the issue..."
+          if ! aws ssm get-parameter --name "/cdk-bootstrap/hnb659fds/version" --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "Bootstrap parameter not found. Attempting to bootstrap now..."
+            cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/${{ env.AWS_REGION }} || {
+              echo "Bootstrap failed. Please ensure your AWS credentials have sufficient permissions."
+              echo "Required permissions: CloudFormation, IAM, S3, SSM, ECR"
+              exit 1
+            }
+            echo "Bootstrap successful. Retrying deployment..."
+            npm run deploy -- --require-approval never
+          else
+            echo "Bootstrap exists but deployment still failed. Check the error above."
+            exit 1
+          fi
         }
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
